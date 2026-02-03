@@ -31,7 +31,7 @@ Add this to your pubspec.yaml:
 dependencies:
   custom_calender:
     git:
-      url: https://github.com/yourusername/custom_calender.git
+      url: https://github.com/jaypanchal1014/custom_calender.git
 
 
 Then run:
