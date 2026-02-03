@@ -1,40 +1,57 @@
 import 'package:custom_calender/src/event.dart';
-import 'package:custom_calender/src/widgets/day_cell.dart';
 import 'package:flutter/widgets.dart';
+import 'day_cell.dart';
 
 class CalenderGrid extends StatelessWidget {
   final DateTime month;
+  final DateTime? selectedDate;
+
+  /// 🔹 Range support
   final DateTime? rangeStart;
   final DateTime? rangeEnd;
 
-  final DateTime? selectedDate;
   final ValueChanged<DateTime> onDateTap;
+  final List<CalendarEvent> events;
+
   const CalenderGrid({
     super.key,
     required this.month,
     required this.selectedDate,
     required this.onDateTap,
+    required this.events,
     this.rangeStart,
     this.rangeEnd,
   });
 
   @override
   Widget build(BuildContext context) {
-    final daysinmonth = DateTime(month.year, month.month + 1, 0).day;
+    final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
+
     return GridView.builder(
       shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 7,
       ),
-      itemCount: daysinmonth,
+      itemCount: daysInMonth,
       itemBuilder: (context, index) {
+        print('Events count: ${events.length}');
+
         final date = DateTime(month.year, month.month, index + 1);
-        final isSelected =
-            selectedDate != null &&
-            date.year == selectedDate!.year &&
-            date.month == selectedDate!.month &&
-            date.day == selectedDate!.day;
+        final dayEvents = events
+            .where((e) => _isSameDay(e.date, date))
+            .toList();
+
+        final hasEvent = dayEvents.isNotEmpty;
+        final eventColor = hasEvent ? dayEvents.first.color : null;
+
+        final today = DateTime.now();
+
+        final isToday = _isSameDay(date, today);
+
+        final isSingleSelected =
+            selectedDate != null && _isSameDay(date, selectedDate!);
+
         final isRangeStart =
             rangeStart != null && _isSameDay(date, rangeStart!);
 
@@ -48,10 +65,13 @@ class CalenderGrid extends StatelessWidget {
 
         return DayCell(
           day: date.day,
-          isSelected: isRangeStart || isRangeEnd,
+          isSelected: isSingleSelected,
           isInRange: isInRange,
           isRangeStart: isRangeStart,
           isRangeEnd: isRangeEnd,
+          isToday: isToday,
+          hasEvent: hasEvent,
+          eventColor: eventColor,
           onTap: () => onDateTap(date),
         );
       },

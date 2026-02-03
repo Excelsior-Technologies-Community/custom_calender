@@ -1,15 +1,21 @@
-import 'package:custom_calender/src/widgets/calender_grid.dart';
-import 'package:custom_calender/src/widgets/calender_header.dart';
-import 'package:custom_calender/src/widgets/week_days.dart';
+import 'package:custom_calender/src/event.dart';
+import 'package:custom_calender/src/range_picker.dart';
 import 'package:flutter/widgets.dart';
+
+import 'widgets/calender_grid.dart';
+import 'widgets/calender_header.dart';
+import 'widgets/week_days.dart';
 
 class CustomCalender extends StatefulWidget {
   final DateTime initialDate;
   final ValueChanged<DateTime>? onDateSelected;
+  final List<CalendarEvent> events;
+
   const CustomCalender({
     super.key,
     required this.initialDate,
     this.onDateSelected,
+    this.events = const [],
   });
 
   @override
@@ -18,33 +24,43 @@ class CustomCalender extends StatefulWidget {
 
 class _CustomCalenderState extends State<CustomCalender> {
   late DateTime _currentMonth;
-  DateTime? _selectedDate;
-  DateTime? _rangestart;
-  DateTime? _rangeEnd;
-  bool _enableRange = true;
+
+  /// Today always selected
+  DateTime get _today => DateTime.now();
+
+  final DateRangeController _rangeController = DateRangeController();
+
   @override
   void initState() {
     super.initState();
-    _currentMonth = DateTime(widget.initialDate.year, widget.initialDate.month);
-    _selectedDate = widget.initialDate;
+
+    DateTime(
+      widget.initialDate.year,
+      widget.initialDate.month,
+      widget.initialDate.day,
+    );
+
+    _currentMonth = DateTime(_today.year, _today.month);
   }
 
+  @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         CalenderHeader(
-          title: _monthtitle(_currentMonth),
-          onNext: _gotonextmonth,
-          onPrevious: _gotoPreviousMonth,
+          title: _monthTitle(_currentMonth),
+          onNext: _goToNextMonth,
+          onPrevious: _goToPreviousMonth,
         ),
         const SizedBox(height: 8),
-        WeekDays(),
+        const WeekDays(),
         const SizedBox(height: 8),
         CalenderGrid(
           month: _currentMonth,
-          selectedDate: _selectedDate,
-          rangeStart: _rangestart,
-          rangeEnd: _rangeEnd,
+          selectedDate: _today, // 🔥 today always selected
+          rangeStart: _rangeController.rangeStart,
+          rangeEnd: _rangeController.rangeEnd,
+          events: widget.events,
           onDateTap: _onDateTap,
         ),
       ],
@@ -53,40 +69,24 @@ class _CustomCalenderState extends State<CustomCalender> {
 
   void _onDateTap(DateTime date) {
     setState(() {
-      if (!_enableRange) {
-        _selectedDate = date;
-        widget.onDateSelected?.call(date);
-        return;
-      }
-
-      if (_rangestart == null || _rangeEnd != null) {
-        _rangestart = date;
-        _rangeEnd = null;
-      } else {
-        if (date.isBefore(_rangestart!)) {
-          _rangeEnd = _rangestart;
-          _rangestart = date;
-        } else {
-          _rangeEnd = date;
-        }
-      }
+      _rangeController.onDateTap(date);
     });
   }
 
-  void _gotonextmonth() {
+  void _goToNextMonth() {
     setState(() {
       _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + 1);
     });
   }
 
-  void _gotoPreviousMonth() {
+  void _goToPreviousMonth() {
     setState(() {
       _currentMonth = DateTime(_currentMonth.year, _currentMonth.month - 1);
     });
   }
 
-  String _monthtitle(DateTime date) {
-    const monthNames = [
+  String _monthTitle(DateTime date) {
+    const months = [
       'January',
       'February',
       'March',
@@ -100,6 +100,6 @@ class _CustomCalenderState extends State<CustomCalender> {
       'November',
       'December',
     ];
-    return '${monthNames[date.month - 1]} ${date.year}';
+    return '${months[date.month - 1]} ${date.year}';
   }
 }

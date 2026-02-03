@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:custom_calender/custom_calender.dart';
 
-void main (){
+void main() {
   runApp(MyApp());
 }
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -14,14 +15,18 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         body: Padding(
           padding: const EdgeInsets.all(16.0),
-          child:CustomCalender(
-            
+          child: CustomCalender(
             initialDate: DateTime.now(),
-            onDateSelected: (date) {
-              print('Selected date: $date');
-            },
-          ),                                                                                                                                                                                                                
+            events: [
+              CalendarEvent(date: DateTime.now()),
+              CalendarEvent(
+                date: DateTime.now().add(const Duration(days: 10)),
+                color: const Color(0xFFD32F2F),
+              ),
+            ],
+          ),
+        ),
       ),
-    ));
+    );
   }
 }
