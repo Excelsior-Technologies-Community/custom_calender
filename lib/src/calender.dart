@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:custom_calender/src/widgets/calender_grid.dart';
 import 'package:custom_calender/src/widgets/calender_header.dart';
 import 'package:custom_calender/src/widgets/week_days.dart';
@@ -21,6 +19,9 @@ class CustomCalender extends StatefulWidget {
 class _CustomCalenderState extends State<CustomCalender> {
   late DateTime _currentMonth;
   DateTime? _selectedDate;
+  DateTime? _rangestart;
+  DateTime? _rangeEnd;
+  bool _enableRange = true;
   @override
   void initState() {
     super.initState();
@@ -42,27 +43,48 @@ class _CustomCalenderState extends State<CustomCalender> {
         CalenderGrid(
           month: _currentMonth,
           selectedDate: _selectedDate,
-          onDateTap: onDateTap,
+          rangeStart: _rangestart,
+          rangeEnd: _rangeEnd,
+          onDateTap: _onDateTap,
         ),
       ],
     );
   }
-  void onDateTap(DateTime date) {
+
+  void _onDateTap(DateTime date) {
     setState(() {
-      _selectedDate = date;
-      widget.onDateSelected?.call(date);
+      if (!_enableRange) {
+        _selectedDate = date;
+        widget.onDateSelected?.call(date);
+        return;
+      }
+
+      if (_rangestart == null || _rangeEnd != null) {
+        _rangestart = date;
+        _rangeEnd = null;
+      } else {
+        if (date.isBefore(_rangestart!)) {
+          _rangeEnd = _rangestart;
+          _rangestart = date;
+        } else {
+          _rangeEnd = date;
+        }
+      }
     });
   }
+
   void _gotonextmonth() {
     setState(() {
       _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + 1);
     });
   }
+
   void _gotoPreviousMonth() {
     setState(() {
       _currentMonth = DateTime(_currentMonth.year, _currentMonth.month - 1);
     });
   }
+
   String _monthtitle(DateTime date) {
     const monthNames = [
       'January',
@@ -76,8 +98,8 @@ class _CustomCalenderState extends State<CustomCalender> {
       'September',
       'October',
       'November',
-      'December'
+      'December',
     ];
     return '${monthNames[date.month - 1]} ${date.year}';
-
-}}
+  }
+}
