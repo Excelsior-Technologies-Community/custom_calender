@@ -1,26 +1,26 @@
-import 'package:custom_calender/src/event.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
+import '../event.dart';
+import '../range_picker.dart';
 import 'day_cell.dart';
 
 class CalenderGrid extends StatelessWidget {
   final DateTime month;
+  final DateTime today;
   final DateTime? selectedDate;
-
-  /// 🔹 Range support
-  final DateTime? rangeStart;
-  final DateTime? rangeEnd;
-
-  final ValueChanged<DateTime> onDateTap;
+  final DateRangeController rangeController;
   final List<CalendarEvent> events;
+  final List<DateTime> holidays;
+  final ValueChanged<DateTime> onDateTap;
 
   const CalenderGrid({
     super.key,
     required this.month,
+    required this.today,
     required this.selectedDate,
-    required this.onDateTap,
+    required this.rangeController,
     required this.events,
-    this.rangeStart,
-    this.rangeEnd,
+    required this.holidays,
+    required this.onDateTap,
   });
 
   @override
@@ -34,44 +34,38 @@ class CalenderGrid extends StatelessWidget {
         crossAxisCount: 7,
       ),
       itemCount: daysInMonth,
-      itemBuilder: (context, index) {
-        print('Events count: ${events.length}');
-
+      itemBuilder: (_, index) {
         final date = DateTime(month.year, month.month, index + 1);
-        final dayEvents = events
-            .where((e) => _isSameDay(e.date, date))
-            .toList();
 
-        final hasEvent = dayEvents.isNotEmpty;
-        final eventColor = hasEvent ? dayEvents.first.color : null;
+        final isWeekend =
+            date.weekday == DateTime.saturday ||
+            date.weekday == DateTime.sunday;
 
-        final today = DateTime.now();
+        final isHoliday = holidays.any((d) => _isSameDay(d, date));
 
-        final isToday = _isSameDay(date, today);
+        final isDisabled = isWeekend || isHoliday;
 
-        final isSingleSelected =
-            selectedDate != null && _isSameDay(date, selectedDate!);
+        bool hasEvent = false;
+        Color? eventColor;
 
-        final isRangeStart =
-            rangeStart != null && _isSameDay(date, rangeStart!);
-
-        final isRangeEnd = rangeEnd != null && _isSameDay(date, rangeEnd!);
-
-        final isInRange =
-            rangeStart != null &&
-            rangeEnd != null &&
-            date.isAfter(rangeStart!) &&
-            date.isBefore(rangeEnd!);
+        for (final event in events) {
+          if (_isSameDay(event.dateTime, date)) {
+            hasEvent = true;
+            eventColor = event.color;
+            break;
+          }
+        }
 
         return DayCell(
           day: date.day,
-          isSelected: isSingleSelected,
-          isInRange: isInRange,
-          isRangeStart: isRangeStart,
-          isRangeEnd: isRangeEnd,
-          isToday: isToday,
+          isToday: _isSameDay(date, today),
+          isSelected: selectedDate != null && _isSameDay(date, selectedDate!),
+          isRangeStart: rangeController.isStart(date),
+          isRangeEnd: rangeController.isEnd(date),
+          isInRange: rangeController.isInRange(date),
           hasEvent: hasEvent,
           eventColor: eventColor,
+          isDisabled: isDisabled,
           onTap: () => onDateTap(date),
         );
       },
@@ -79,6 +73,5 @@ class CalenderGrid extends StatelessWidget {
   }
 }
 
-bool _isSameDay(DateTime a, DateTime b) {
-  return a.year == b.year && a.month == b.month && a.day == b.day;
-}
+bool _isSameDay(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;

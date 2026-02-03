@@ -1,11 +1,13 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 class CalendarEvent {
-  final DateTime date;
+  final DateTime dateTime;
+  final String title;
   final Color color;
 
   const CalendarEvent({
-    required this.date,
-    this.color = const Color.fromARGB(255, 210, 25, 25), // default blue
+    required this.dateTime,
+    required this.title,
+    this.color = const Color(0xFF1976D2),
   });
 }

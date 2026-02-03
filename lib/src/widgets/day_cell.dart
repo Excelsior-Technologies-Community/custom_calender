@@ -1,84 +1,71 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 class DayCell extends StatelessWidget {
   final int day;
+  final bool isToday;
   final bool isSelected;
-  final bool isInRange;
   final bool isRangeStart;
   final bool isRangeEnd;
-  final bool isToday;
+  final bool isInRange;
   final bool hasEvent;
+  final bool isDisabled;
   final Color? eventColor;
-
   final VoidCallback onTap;
 
   const DayCell({
     super.key,
     required this.day,
     required this.onTap,
+    this.isToday = false,
     this.isSelected = false,
-    this.isInRange = false,
     this.isRangeStart = false,
     this.isRangeEnd = false,
-    this.isToday = false,
-    required this.hasEvent,
+    this.isInRange = false,
+    this.hasEvent = false,
+    this.isDisabled = false,
     this.eventColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    Color bgColor = const Color(0x00000000);
-    Color textColor = const Color(0xFF000000);
-    Border? border;
+    Color bg = Colors.transparent;
+    Color text = Colors.black;
 
-    // 🔵 RANGE START / END
-    if (isRangeStart || isRangeEnd) {
-      bgColor = const Color(0xFF6A1B9A); // dark purple
-      textColor = const Color(0xFFFFFFFF);
+    if (isDisabled) {
+      text = Colors.grey;
+    } else if (isRangeStart || isRangeEnd) {
+      bg = const Color(0xFF6A1B9A);
+      text = Colors.white;
+    } else if (isInRange) {
+      bg = const Color(0xFFD1C4E9);
+    } else if (isToday || isSelected) {
+      bg = const Color(0xFF1976D2);
+      text = Colors.white;
     }
-    // 🟣 RANGE MIDDLE
-    else if (isInRange) {
-      bgColor = const Color(0xFFD1C4E9); // light purple
-    }
-    // 🔵 SINGLE SELECT
-    else if (isSelected) {
-      bgColor = const Color(0xFF1976D2);
-      textColor = const Color(0xFFFFFFFF);
-    }
-    // 🟢 TODAY (only if not selected / range)
-    // else if (isToday) {
-    //   border = Border.all(color: const Color(0xFF2E7D32), width: 2);
-    //   textColor = const Color(0xFF2E7D32);
-    // }
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: isDisabled ? null : onTap,
       child: Container(
-        height: 44,
         margin: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: bgColor,
+          color: bg,
           borderRadius: BorderRadius.circular(20),
-          border: border,
         ),
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // 🔹 DATE TEXT (always center)
             Text(
               day.toString(),
-              style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
+              style: TextStyle(color: text, fontWeight: FontWeight.w600),
             ),
-
-            // 🔹 EVENT DOT (absolute bottom)
-            if (hasEvent && !isToday)
+            if (hasEvent && !isDisabled)
               Positioned(
                 bottom: 4,
                 child: Container(
                   width: 6,
                   height: 6,
                   decoration: BoxDecoration(
-                    color: eventColor ?? const Color(0xFF1976D2),
+                    color: eventColor ?? Colors.blue,
                     shape: BoxShape.circle,
                   ),
                 ),

@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:custom_calender/custom_calender.dart';
+import 'package:custom_calender/src/event.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  List<CalendarEvent> myEvents = [];
 
   @override
   Widget build(BuildContext context) {
@@ -17,13 +25,18 @@ class MyApp extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: CustomCalender(
             initialDate: DateTime.now(),
-            events: [
-              CalendarEvent(date: DateTime.now()),
-              CalendarEvent(
-                date: DateTime.now().add(const Duration(days: 10)),
-                color: const Color(0xFFD32F2F),
-              ),
-            ],
+
+          
+            events: myEvents,
+
+            holidays: [DateTime(2026, 2, 17)],
+
+            
+            onEventAdded: (event) {
+              setState(() {
+                myEvents.add(event);
+              });
+            },
           ),
         ),
       ),
